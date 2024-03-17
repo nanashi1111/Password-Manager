@@ -1,22 +1,24 @@
 package com.passwordmanager.domain.usecase
 
-import com.passwordmanager.data.repositories.PasswordManagerRepository
+import com.passwordmanager.data.repositories.MasterPasswordRepository
 import com.passwordmanager.domain.State
 import com.passwordmanager.domain.UseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
-class UpdateMasterPassword @Inject constructor(private val passwordManagerRepository: PasswordManagerRepository) : UseCase<Boolean, UpdateMasterPassword.Params>() {
-
+abstract class UpdateMasterPassword : UseCase<Boolean, UpdateMasterPassword.Params>() {
   data class Params(val password: String, val reenteredPassword: String)
+}
 
-  override fun buildFlow(param: Params): Flow<State<Boolean>> {
+class UpdateMasterPasswordImpl constructor(private val masterPasswordRepository: MasterPasswordRepository) : UpdateMasterPassword() {
+
+  override fun buildFlow(param: UpdateMasterPassword.Params): Flow<State<Boolean>> {
     return flow {
       if (param.password != param.reenteredPassword) {
         emit(State.ErrorState(PasswordNotMatchedException()))
       } else {
-        passwordManagerRepository.updatePasswordManager(param.password)
+        masterPasswordRepository.updatePasswordManager(param.password)
         emit(State.DataState(true))
       }
     }

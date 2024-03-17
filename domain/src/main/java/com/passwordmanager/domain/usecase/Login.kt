@@ -1,16 +1,16 @@
 package com.passwordmanager.domain.usecase
 
-import com.passwordmanager.data.repositories.PasswordManagerRepository
+import com.passwordmanager.data.repositories.MasterPasswordRepository
 import com.passwordmanager.domain.State
 import com.passwordmanager.domain.UseCase
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-class Login @Inject constructor(private val passwordManagerRepository: PasswordManagerRepository) : UseCase<Boolean, String>() {
+abstract class Login : UseCase<Boolean, String>()
+class LoginImpl constructor(private val masterPasswordRepository: MasterPasswordRepository) : Login() {
   override fun buildFlow(param: String): Flow<State<Boolean>> {
-    return passwordManagerRepository.getPasswordManager().map {
+    return masterPasswordRepository.getPasswordManager().map {
       if (it == param) {
         State.DataState(true)
       } else {
@@ -20,4 +20,4 @@ class Login @Inject constructor(private val passwordManagerRepository: PasswordM
   }
 }
 
-class LoginException: Throwable("Password is not correct")
+class LoginException : Throwable("Password is not correct")

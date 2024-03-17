@@ -10,24 +10,14 @@ import com.klmobile.passwordmanager.Screens
 import com.passwordmanager.domain.State
 
 @Composable
-fun OnboardingScreen(navHostController: NavHostController) {
-  val viewModel: OnboardingViewModel = hiltViewModel()
-  val checkMasterPasswordExistResult = viewModel.checkMasterPasswordExistResult.collectAsState()
+fun OnboardingScreen(
+  checkMasterPasswordExistResult: State<Boolean>,
+  onGetLoginResult: ((State<Boolean>) -> Unit)? = null) {
   Surface {
-    LaunchedEffect(key1 = checkMasterPasswordExistResult.value, block = {
-      val result = checkMasterPasswordExistResult.value
-      if (result is State.DataState) {
-        val destinationRoute = if (result.data) {
-          Screens.SCREEN_LOGIN
-        } else {
-          Screens.SCREEN_REGISTER
-        }
-        navHostController.navigate(destinationRoute) {
-          popUpTo(navHostController.graph.id) {
-            inclusive = true
-          }
-        }
-      }
+    LaunchedEffect(key1 = checkMasterPasswordExistResult, block = {
+      val result = checkMasterPasswordExistResult
+
+      onGetLoginResult?.invoke(result)
     })
   }
 }

@@ -28,29 +28,31 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.klmobile.passwordmanager.R
+import com.klmobile.passwordmanager.screens.components.AppToolBar
 import com.klmobile.passwordmanager.screens.login.compnents.LoginActions
 import com.klmobile.passwordmanager.screens.login.compnents.PasswordForm
 import com.klmobile.passwordmanager.ui.theme.VerticalSpacing
 import com.klmobile.passwordmanager.utils.toast
 import com.passwordmanager.domain.State
+import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
 fun RegisterScreen(
-  onRegistered: (() -> Unit)? = null
+  onRegistered: (() -> Unit)? = null,
+  onPasswordChanged: ((String) -> Unit)?=null,
+  onReentePasswordChanged: ((String) -> Unit)?=null,
+  onUpdatePassword: (() -> Unit)? = null,
+  onResetState: (() -> Unit)? = null,
+  updatePasswordState: State<Boolean> = State.IdleState
 ) {
-  val viewModel: RegisterViewModel = hiltViewModel()
-  val updatePasswordState = viewModel.updateMasterPasswordResult.collectAsState()
+//  val viewModel: RegisterViewModel = hiltViewModel()
+//  val updatePasswordState = viewModel.updateMasterPasswordResult.collectAsState()
   val context = LocalContext.current
   Scaffold(
     topBar = {
-      TopAppBar(
-        title = { Text(text = stringResource(id = R.string.app_name), style = TextStyle(color = MaterialTheme.colorScheme.onPrimary)) },
-        colors = TopAppBarDefaults.smallTopAppBarColors(
-          containerColor = MaterialTheme.colorScheme.primary
-        )
-      )
+      AppToolBar(title = stringResource(id = R.string.app_name))
     }
   ) {
     Column(
@@ -71,7 +73,8 @@ fun RegisterScreen(
           .padding(20.dp),
         hint = stringResource(id = R.string.your_password),
         onTextChange = {
-          viewModel.onPassword(it)
+          onPasswordChanged?.invoke(it)
+
         }
       )
       VerticalSpacing(spacing = 10.dp)
@@ -81,7 +84,7 @@ fun RegisterScreen(
           .padding(20.dp),
         hint = stringResource(id = R.string.reenter_your_password),
         onTextChange = {
-          viewModel.onReenterPassword(it)
+          onReentePasswordChanged?.invoke(it)
         }
       )
       VerticalSpacing(spacing = 10.dp)
@@ -90,16 +93,16 @@ fun RegisterScreen(
           .fillMaxWidth()
           .padding(horizontal = 20.dp),
         onLoginPressed = {
-          viewModel.updatePassword()
+          onUpdatePassword?.invoke()
         }
       )
     }
   }
 
-  if (updatePasswordState.value is State.LoadingState) {
+  if (updatePasswordState is State.LoadingState) {
     Dialog(
       onDismissRequest = {
-        Log.d("Register", "onDismissRequest")
+        Timber.tag("Register").d("onDismissRequest")
       },
       properties = DialogProperties(
         dismissOnBackPress = true,
@@ -110,21 +113,22 @@ fun RegisterScreen(
     }
   }
 
-  DisposableEffect(key1 = updatePasswordState.value, effect = {
-    when (updatePasswordState.value) {
+  DisposableEffect(key1 = updatePasswordState, effect = {
+    when (updatePasswordState) {
       is State.DataState -> {
         onRegistered?.invoke()
       }
 
       is State.ErrorState -> {
-        context.toast((updatePasswordState.value as State.ErrorState).exception.message ?: "")
+        context.toast((updatePasswordState as State.ErrorState).exception.message ?: "")
       }
 
       else -> {}
     }
 
     onDispose {
-      viewModel.resetState()
+      onResetState?.invoke()
+      //viewModel.resetState()
     }
   })
 

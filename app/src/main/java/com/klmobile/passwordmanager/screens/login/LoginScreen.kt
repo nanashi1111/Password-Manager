@@ -14,17 +14,11 @@ import com.klmobile.passwordmanager.R
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.klmobile.passwordmanager.MainViewModel
 import com.klmobile.passwordmanager.screens.login.compnents.LoginActions
 import com.klmobile.passwordmanager.screens.login.compnents.PasswordForm
 import com.klmobile.passwordmanager.screens.login.compnents.Welcome
@@ -34,17 +28,18 @@ import com.passwordmanager.domain.State
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview
-fun LoginScreen(onLoggedIn: (() -> Unit)? = null) {
+fun LoginScreen(
+  onLoginPressed: (() -> Unit)? = null,
+  onPasswordTyped: ((String) -> Unit)? = null,
+  onDisposed: (() -> Unit)? = null,
+  onLoggedIn: (() -> Unit)? = null,
+  loginState: State<Boolean>
+) {
   val context = LocalContext.current
-  val loginViewModel: LoginViewModel = hiltViewModel()
-  val loginState = loginViewModel.loginFlow.collectAsState()
-  DisposableEffect(key1 = loginState.value, effect = {
-
-    val loginStateValue = loginState.value
-    when (loginStateValue) {
+  DisposableEffect(key1 = loginState, effect = {
+    when (loginState) {
       is State.DataState -> {
-        if (loginStateValue.data) {
+        if (loginState.data) {
           onLoggedIn?.invoke()
         } else {
           context.toast(context.getString(R.string.error_password_not_correct))
@@ -52,14 +47,15 @@ fun LoginScreen(onLoggedIn: (() -> Unit)? = null) {
       }
 
       is State.ErrorState -> {
-        context.toast(loginStateValue.exception.message ?: "")
+        context.toast(loginState.exception.message ?: "")
       }
 
       else -> {}
     }
 
     onDispose {
-      loginViewModel.resetState()
+      onDisposed?.invoke()
+      //loginViewModel.resetState()
     }
   })
 
@@ -84,7 +80,8 @@ fun LoginScreen(onLoggedIn: (() -> Unit)? = null) {
           .fillMaxWidth()
           .padding(horizontal = 20.dp),
         onTextChange = {
-          loginViewModel.updatePassword(it)
+          //loginViewModel.updatePassword(it)
+          onPasswordTyped?.invoke(it)
         }
       )
       VerticalSpacing(spacing = 10.dp)
@@ -93,7 +90,8 @@ fun LoginScreen(onLoggedIn: (() -> Unit)? = null) {
           .fillMaxWidth()
           .padding(horizontal = 20.dp),
         onLoginPressed = {
-          loginViewModel.login()
+          onLoginPressed?.invoke()
+          //loginViewModel.login()
         }
       )
     }
