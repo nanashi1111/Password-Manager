@@ -9,6 +9,11 @@
     <string name="accounts">Accounts</string>
     <string name="error_password_not_correct">Your master password is not correct</string>
 
-
+    <string name="note">Note</string>
+    <string name="title">Title</string>
+    <string name="website">Website</string>
+    <string name="username">Username</string>
+    <string name="created">Created</string>
+    <string name="updated">Updated</string>
 
 </resources>

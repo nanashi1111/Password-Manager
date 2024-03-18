@@ -11,8 +11,6 @@ data class AccountDTO(
   val date: Long,
   @ColumnInfo("title")
   val title: String,
-  @ColumnInfo("account")
-  val account: String,
   @ColumnInfo("username")
   val username: String,
   @ColumnInfo("password")

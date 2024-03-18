@@ -23,25 +23,30 @@ import java.util.Date
 @Composable
 fun AccountItem(
   modifier: Modifier = Modifier,
-  account: Account
+  account: Account,
+  onAccountSelected: ((Account) -> Unit)? = null,
 ) {
 
   Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
     Box(
       modifier = Modifier
-        .size(70.dp)
-        .background(MaterialTheme.colorScheme.surface, shape = CircleShape),
+        .size(55.dp)
+        .background(MaterialTheme.colorScheme.primary, shape = CircleShape),
       contentAlignment = Alignment.Center
     ) {
+      val shortTitle = account.title.split(" ")
+        .filter { it.isNotEmpty() }
+        .map { "${it[0]}".uppercase() }
+        .joinToString("")
       Text(
-        text = account.title.uppercase(), style = MaterialTheme.typography.titleMedium
-          .copy(color = MaterialTheme.colorScheme.onSurface)
+        text = shortTitle, style = MaterialTheme.typography.titleMedium
+          .copy(color = MaterialTheme.colorScheme.onPrimary)
       )
     }
     HorizontalSpacing(spacing = 15.dp)
     Text(
       modifier = Modifier.weight(1f),
-      text = account.account, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground)
+      text = account.username, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground)
     )
     HorizontalSpacing(spacing = 15.dp)
     Text(
@@ -60,7 +65,7 @@ fun AccountItemPreview() {
       modifier = Modifier
         .fillMaxWidth()
         .padding(vertical = 10.dp, horizontal = 15.dp),
-      account = Account(Date().time, "Facebook", "Facebook", "", "", "", "")
+      account = Account(Date().time, "Facebook ring", "Facebook", "", "", "")
     )
   }
 }

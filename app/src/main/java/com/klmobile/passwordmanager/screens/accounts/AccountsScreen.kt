@@ -1,6 +1,7 @@
 package com.klmobile.passwordmanager.screens.accounts
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -28,11 +29,13 @@ import com.klmobile.passwordmanager.screens.components.AppToolBar
 import com.klmobile.passwordmanager.ui.theme.PasswordManagerTheme
 import com.passwordmanager.domain.State
 import com.passwordmanager.domain.entities.Account
+import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountsScreen(
   onCreateAccountClicked: (() -> Unit)? = null,
+  onAccountSelected: ((Account) -> Unit)? = null,
   accountsState: State<List<Account>>
 ) {
   Scaffold(topBar = {
@@ -52,8 +55,10 @@ fun AccountsScreen(
             AccountItem(
               modifier = Modifier
                 .fillMaxWidth()
-                .padding(15.dp),
-              account = accountsState.data[it]
+                .padding(15.dp)
+                .clickable { onAccountSelected?.invoke(accountsState.data[it]) },
+              account = accountsState.data[it],
+              onAccountSelected = onAccountSelected
             )
           }
         })
@@ -70,6 +75,8 @@ fun AccountsScreen(
 @Composable
 fun AccountScreenPreview() {
   PasswordManagerTheme {
-    AccountsScreen(accountsState = State.DataState(mutableListOf()))
+    AccountsScreen(accountsState = State.DataState(mutableListOf(
+      Account(Date().time, "Facebook", "dtv1111", "dtv1111", "30912jd", "https://facebook.com")
+    )))
   }
 }

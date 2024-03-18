@@ -6,6 +6,8 @@ import com.passwordmanager.domain.usecase.CheckIfMasterPasswordSet
 import com.passwordmanager.domain.usecase.CheckIfMasterPasswordSetImpl
 import com.passwordmanager.domain.usecase.CreateNewAccount
 import com.passwordmanager.domain.usecase.CreateNewAccountImpl
+import com.passwordmanager.domain.usecase.GetAccountByCreatedDate
+import com.passwordmanager.domain.usecase.GetAccountByCreatedDateImpl
 import com.passwordmanager.domain.usecase.GetAllAccounts
 import com.passwordmanager.domain.usecase.GetAllAccountsImpl
 import com.passwordmanager.domain.usecase.Login
@@ -21,23 +23,33 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 class UseCaseModule {
-  @Provides
-  @Singleton
-  fun provideCreateAccountUseCase(accountRepository: AccountRepository): CreateNewAccount = CreateNewAccountImpl(accountRepository)
+    @Provides
+    @Singleton
+    fun provideCreateAccountUseCase(accountRepository: AccountRepository): CreateNewAccount =
+        CreateNewAccountImpl(accountRepository)
 
-  @Provides
-  @Singleton
-  fun provideGetAllAccountsUseCase(accountRepository: AccountRepository): GetAllAccounts = GetAllAccountsImpl(accountRepository)
+    @Provides
+    @Singleton
+    fun provideGetAllAccountsUseCase(accountRepository: AccountRepository): GetAllAccounts =
+        GetAllAccountsImpl(accountRepository)
 
-  @Singleton
-  @Provides
-  fun provideCheckIfMasterPasswordSetUseCase(masterPasswordRepository: MasterPasswordRepository): CheckIfMasterPasswordSet = CheckIfMasterPasswordSetImpl(masterPasswordRepository)
+    @Singleton
+    @Provides
+    fun provideCheckIfMasterPasswordSetUseCase(masterPasswordRepository: MasterPasswordRepository): CheckIfMasterPasswordSet =
+        CheckIfMasterPasswordSetImpl(masterPasswordRepository)
 
-  @Singleton
-  @Provides
-  fun provideLoginUseCase(masterPasswordRepository: MasterPasswordRepository): Login = LoginImpl(masterPasswordRepository)
+    @Singleton
+    @Provides
+    fun provideLoginUseCase(masterPasswordRepository: MasterPasswordRepository): Login =
+        LoginImpl(masterPasswordRepository)
 
-  @Singleton
-  @Provides
-  fun provideUpdateMasterPasswordUseCase(masterPasswordRepository: MasterPasswordRepository): UpdateMasterPassword = UpdateMasterPasswordImpl(masterPasswordRepository)
+    @Singleton
+    @Provides
+    fun provideUpdateMasterPasswordUseCase(masterPasswordRepository: MasterPasswordRepository): UpdateMasterPassword =
+        UpdateMasterPasswordImpl(masterPasswordRepository)
+
+    @Singleton
+    @Provides
+    fun provideGetAccountByCreatedDate(accountRepository: AccountRepository): GetAccountByCreatedDate =
+        GetAccountByCreatedDateImpl(accountRepository)
 }
