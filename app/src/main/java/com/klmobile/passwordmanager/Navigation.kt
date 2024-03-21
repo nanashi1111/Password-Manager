@@ -189,6 +189,7 @@ fun AppNavigation(navHostController: NavHostController, mainViewModel: MainViewM
                         } else {
                             context.toast(R.string.updated)
                         }
+                        createAccountViewModel.resetCreateAccountState()
                         navHostController.popBackStack()
                     }
 
@@ -203,7 +204,9 @@ fun AppNavigation(navHostController: NavHostController, mainViewModel: MainViewM
             ComposableLifecycle(onEvent = { _, event ->
                 when (event) {
                     Lifecycle.Event.ON_CREATE -> {
-                        createAccountViewModel.getAccount()
+                        if (id.value != 0L) {
+                            createAccountViewModel.getAccount()
+                        }
                     }
 
                     else -> {}

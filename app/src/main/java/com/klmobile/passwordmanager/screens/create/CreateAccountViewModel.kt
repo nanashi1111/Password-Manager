@@ -69,7 +69,7 @@ class CreateAccountViewModel @Inject constructor(
         }
     }
 
-    fun getAccount(/*id: Long*/) {
+    fun getAccount() {
         val id = _existAccountId.value
         if (id == 0L) {
             return
@@ -92,6 +92,12 @@ class CreateAccountViewModel @Inject constructor(
             website = it.website
             note = it.note
         }
+    }
+
+    fun resetCreateAccountState() {
+        _createAccountResult.value = State.IdleState
+        _getAccountResult.value = State.IdleState
+        _existAccountId.value = 0L
     }
 
 }
