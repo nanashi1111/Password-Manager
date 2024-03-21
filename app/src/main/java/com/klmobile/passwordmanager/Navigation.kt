@@ -1,14 +1,21 @@
 package com.klmobile.passwordmanager
 
 import android.content.Context
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -19,6 +26,7 @@ import com.klmobile.passwordmanager.Screens.SCREEN_ONBOARDING
 import com.klmobile.passwordmanager.Screens.SCREEN_REGISTER
 import com.klmobile.passwordmanager.screens.accounts.AccountsScreen
 import com.klmobile.passwordmanager.screens.accounts.AccountsViewModel
+import com.klmobile.passwordmanager.screens.components.AppLoadingIndicator
 import com.klmobile.passwordmanager.screens.components.ComposableLifecycle
 import com.klmobile.passwordmanager.screens.create.CreateAccountScreen
 import com.klmobile.passwordmanager.screens.create.CreateAccountViewModel
@@ -38,13 +46,56 @@ object Screens {
     const val SCREEN_LOGIN = "login"
     const val SCREEN_ACCOUNTS = "accounts"
     const val SCREEN_CREATE_ACCOUNTS = "create_account/{id}"
+}
 
+private const val TRANSITION_DURATION = 300
 
+private fun NavGraphBuilder.defaultComposable(
+    route: String,
+    enterTransition: (@JvmSuppressWildcards
+    AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?)? = {
+        slideIntoContainer(
+            AnimatedContentTransitionScope.SlideDirection.Start, tween(TRANSITION_DURATION)
+        )
+    },
+    exitTransition: (@JvmSuppressWildcards
+    AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition?)? = {
+        slideOutOfContainer(
+            AnimatedContentTransitionScope.SlideDirection.Start, tween(TRANSITION_DURATION)
+        )
+    },
+    popEnterTransition: (@JvmSuppressWildcards
+    AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?)? =
+        {
+            slideIntoContainer(
+                AnimatedContentTransitionScope.SlideDirection.End, tween(TRANSITION_DURATION)
+            )
+        },
+    popExitTransition: (@JvmSuppressWildcards
+    AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition?)? =
+        {
+            slideOutOfContainer(
+                AnimatedContentTransitionScope.SlideDirection.End, tween(TRANSITION_DURATION)
+            )
+        },
+    content: @Composable() (AnimatedContentScope.(NavBackStackEntry) -> Unit)
+) {
+    composable(
+        route, enterTransition = enterTransition,
+        exitTransition = exitTransition,
+        popEnterTransition = popEnterTransition,
+        popExitTransition = popExitTransition
+    ) {
+        content(this, it)
+    }
 }
 
 @Composable
 fun AppNavigation(navHostController: NavHostController, mainViewModel: MainViewModel) {
+    val createAccountViewModel: CreateAccountViewModel = hiltViewModel()
     NavHost(navController = navHostController, startDestination = SCREEN_ONBOARDING) {
+
+
         composable(SCREEN_ONBOARDING) {
             val onboardingViewModel: OnboardingViewModel = hiltViewModel()
             val checkMasterPasswordExistResult =
@@ -68,7 +119,8 @@ fun AppNavigation(navHostController: NavHostController, mainViewModel: MainViewM
                 })
         }
 
-        composable(SCREEN_REGISTER) {
+
+        defaultComposable(SCREEN_REGISTER) {
             val registerViewModel: RegisterViewModel = hiltViewModel()
             val updatePasswordState = registerViewModel.updateMasterPasswordResult.collectAsState()
             RegisterScreen(
@@ -87,7 +139,8 @@ fun AppNavigation(navHostController: NavHostController, mainViewModel: MainViewM
             )
         }
 
-        composable(SCREEN_LOGIN) {
+
+        defaultComposable(SCREEN_LOGIN) {
             val loginViewModel: LoginViewModel = hiltViewModel()
             val loginState = loginViewModel.loginFlow.collectAsState()
             LoginScreen(loginState = loginState.value,
@@ -104,7 +157,8 @@ fun AppNavigation(navHostController: NavHostController, mainViewModel: MainViewM
             )
         }
 
-        composable(SCREEN_ACCOUNTS) {
+
+        defaultComposable(SCREEN_ACCOUNTS) {
             val accountsViewModel: AccountsViewModel = hiltViewModel()
             val state = accountsViewModel.accountsState.collectAsState()
             ComposableLifecycle { _, event ->
@@ -113,28 +167,24 @@ fun AppNavigation(navHostController: NavHostController, mainViewModel: MainViewM
                 }
             }
             AccountsScreen(accountsState = state.value, onCreateAccountClicked = {
+                createAccountViewModel.setExistAccountId(0L)
                 navHostController.navigate(SCREEN_CREATE_ACCOUNTS)
             }, onAccountSelected = { account ->
-                navHostController.navigate(
-                    SCREEN_CREATE_ACCOUNTS.replace(
-                        "{id}",
-                        "${account.date}"
-                    )
-                )
+                createAccountViewModel.setExistAccountId(account.date)
+                navHostController.navigate(SCREEN_CREATE_ACCOUNTS)
             })
         }
 
-        composable(SCREEN_CREATE_ACCOUNTS) {
+        defaultComposable(SCREEN_CREATE_ACCOUNTS) {
             val context: Context = LocalContext.current
-            val createAccountViewModel: CreateAccountViewModel = hiltViewModel()
             val createAccountState = createAccountViewModel.createAccountResult.collectAsState()
             val existAccountState = createAccountViewModel.getAccountResult.collectAsState()
-            val id = it.arguments?.getString("id")?.toLongOrNull() ?: 0L
+            val id = createAccountViewModel.existAccountId.collectAsState()
 
             LaunchedEffect(key1 = createAccountState.value, block = {
                 when (val createAccountResult = createAccountState.value) {
                     is State.DataState -> {
-                        if (id == null || id == 0L) {
+                        if (id.value == 0L) {
                             context.toast(R.string.created)
                         } else {
                             context.toast(R.string.updated)
@@ -153,17 +203,15 @@ fun AppNavigation(navHostController: NavHostController, mainViewModel: MainViewM
             ComposableLifecycle(onEvent = { _, event ->
                 when (event) {
                     Lifecycle.Event.ON_CREATE -> {
-                        if (id != 0L) {
-                            createAccountViewModel.getAccount(id)
-                        }
-
+                        createAccountViewModel.getAccount()
                     }
+
                     else -> {}
                 }
             })
 
-            if (id != 0L && existAccountState.value !is State.DataState) {
-                CircularProgressIndicator()
+            if (id.value != 0L && existAccountState.value !is State.DataState) {
+                AppLoadingIndicator(modifier = Modifier.fillMaxSize())
             } else {
                 CreateAccountScreen(
                     account = if (existAccountState.value is State.DataState) {
@@ -183,5 +231,6 @@ fun AppNavigation(navHostController: NavHostController, mainViewModel: MainViewM
                 )
             }
         }
+
     }
 }

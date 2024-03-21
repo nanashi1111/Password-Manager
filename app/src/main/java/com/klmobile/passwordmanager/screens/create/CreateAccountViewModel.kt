@@ -27,6 +27,9 @@ class CreateAccountViewModel @Inject constructor(
     private var website = ""
     private var note = ""
 
+    val _existAccountId = MutableStateFlow(0L)
+    val existAccountId = _existAccountId.asStateFlow()
+
     private val _createAccountResult: MutableStateFlow<State<Account>> =
         MutableStateFlow(State.IdleState)
     val createAccountResult = _createAccountResult.asStateFlow()
@@ -35,6 +38,10 @@ class CreateAccountViewModel @Inject constructor(
     private val _getAccountResult: MutableStateFlow<State<Account>> =
         MutableStateFlow(State.IdleState)
     val getAccountResult = _getAccountResult.asStateFlow()
+
+    fun setExistAccountId(id: Long) {
+        _existAccountId.value = id
+    }
 
     fun onAccountInformationChanged(accountField: AccountField, value: String) {
         when (accountField) {
@@ -62,7 +69,11 @@ class CreateAccountViewModel @Inject constructor(
         }
     }
 
-    fun getAccount(id: Long) {
+    fun getAccount(/*id: Long*/) {
+        val id = _existAccountId.value
+        if (id == 0L) {
+            return
+        }
         viewModelScope.launch {
             getAccountByCreatedDate.invoke(id).collectLatest {
                 _getAccountResult.emit(it)
