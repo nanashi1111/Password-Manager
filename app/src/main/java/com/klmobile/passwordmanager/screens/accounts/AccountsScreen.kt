@@ -59,7 +59,6 @@ fun AccountsScreen(
                                 .padding(15.dp)
                                 .clickable { onAccountSelected?.invoke(accountsState.data[it]) },
                             account = accountsState.data[it],
-                            onAccountSelected = onAccountSelected
                         )
                     }
                 })
@@ -87,7 +86,7 @@ fun AccountScreenPreview() {
                         "dtv1111",
                         "dtv1111",
                         "30912jd",
-                        "https://facebook.com"
+                        "https://facebook.com", ""
                     )
                 )
             )

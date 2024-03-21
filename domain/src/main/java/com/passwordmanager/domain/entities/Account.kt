@@ -1,5 +1,6 @@
 package com.passwordmanager.domain.entities
 
+import android.graphics.Color
 import com.passwordmanager.data.entities.AccountDTO
 
 data class Account(
@@ -8,7 +9,8 @@ data class Account(
     val username: String,
     val password: String,
     val website: String,
-    val note: String
+    val note: String,
+    val color: String,
 ) {
 
     companion object {
@@ -19,12 +21,14 @@ data class Account(
                 username = accountDTO.username,
                 password = accountDTO.password,
                 website = accountDTO.website,
-                note = accountDTO.note
+                note = accountDTO.note,
+                color = accountDTO.color
             )
         }
     }
+
 }
 
 enum class AccountField {
-    TITLE, USERNAME, PASSWORD, WEBSITE, NOTE
+    TITLE, USERNAME, PASSWORD, WEBSITE, NOTE, COLOR
 }

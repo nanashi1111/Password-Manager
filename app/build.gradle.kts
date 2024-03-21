@@ -37,6 +37,7 @@ android {
   }
   buildFeatures {
     compose = true
+    buildConfig = true
   }
   composeOptions {
     kotlinCompilerExtensionVersion = "1.4.3"
@@ -66,6 +67,7 @@ dependencies {
   kapt("com.google.dagger:hilt-android-compiler:2.44")
 
   implementation ("com.jakewharton.timber:timber:5.0.1")
+  implementation ("io.mhssn:colorpicker:1.0.0")
 
   testImplementation("junit:junit:4.13.2")
   androidTestImplementation("androidx.test.ext:junit:1.1.5")

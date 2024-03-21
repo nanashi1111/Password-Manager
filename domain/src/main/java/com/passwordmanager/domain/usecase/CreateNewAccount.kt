@@ -10,13 +10,14 @@ import kotlinx.coroutines.flow.flow
 import java.util.Date
 
 abstract class CreateNewAccount : UseCase<Account, CreateNewAccount.Params>() {
-    class Params(
+    data class Params(
         val id: Long,
         val title: String,
         val username: String,
         val password: String,
         val website: String,
-        val note: String
+        val note: String,
+        val color: String,
     )
 }
 
@@ -41,7 +42,8 @@ class CreateNewAccountImpl(private val accountRepository: AccountRepository) : C
                 username = param.username,
                 password = param.password,
                 website = param.website,
-                note = param.note
+                note = param.note,
+                color = param.color
             )
             accountRepository.createNewAccount(accountDTO)
             accountRepository.getAccountByCreatedDate(accountDTO.date)?.let {

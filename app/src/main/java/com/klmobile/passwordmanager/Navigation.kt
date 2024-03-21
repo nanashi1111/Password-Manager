@@ -92,7 +92,7 @@ private fun NavGraphBuilder.defaultComposable(
 
 @Composable
 fun AppNavigation(navHostController: NavHostController, mainViewModel: MainViewModel) {
-    val createAccountViewModel: CreateAccountViewModel = hiltViewModel()
+
     NavHost(navController = navHostController, startDestination = SCREEN_ONBOARDING) {
 
 
@@ -167,29 +167,28 @@ fun AppNavigation(navHostController: NavHostController, mainViewModel: MainViewM
                 }
             }
             AccountsScreen(accountsState = state.value, onCreateAccountClicked = {
-                createAccountViewModel.setExistAccountId(0L)
                 navHostController.navigate(SCREEN_CREATE_ACCOUNTS)
             }, onAccountSelected = { account ->
-                createAccountViewModel.setExistAccountId(account.date)
-                navHostController.navigate(SCREEN_CREATE_ACCOUNTS)
+                navHostController.navigate(SCREEN_CREATE_ACCOUNTS.replace("{id}", "${account.date}"))
             })
         }
 
         defaultComposable(SCREEN_CREATE_ACCOUNTS) {
+            val createAccountViewModel: CreateAccountViewModel = hiltViewModel()
             val context: Context = LocalContext.current
             val createAccountState = createAccountViewModel.createAccountResult.collectAsState()
             val existAccountState = createAccountViewModel.getAccountResult.collectAsState()
-            val id = createAccountViewModel.existAccountId.collectAsState()
+            val createAccountParams = createAccountViewModel.createAccountParams.collectAsState()
+            val id = it.arguments?.getString("id")?.toLongOrNull() ?: 0L
 
             LaunchedEffect(key1 = createAccountState.value, block = {
                 when (val createAccountResult = createAccountState.value) {
                     is State.DataState -> {
-                        if (id.value == 0L) {
+                        if (id == 0L) {
                             context.toast(R.string.created)
                         } else {
                             context.toast(R.string.updated)
                         }
-                        createAccountViewModel.resetCreateAccountState()
                         navHostController.popBackStack()
                     }
 
@@ -204,8 +203,8 @@ fun AppNavigation(navHostController: NavHostController, mainViewModel: MainViewM
             ComposableLifecycle(onEvent = { _, event ->
                 when (event) {
                     Lifecycle.Event.ON_CREATE -> {
-                        if (id.value != 0L) {
-                            createAccountViewModel.getAccount()
+                        if (id != 0L) {
+                            createAccountViewModel.getAccount(id)
                         }
                     }
 
@@ -213,7 +212,7 @@ fun AppNavigation(navHostController: NavHostController, mainViewModel: MainViewM
                 }
             })
 
-            if (id.value != 0L && existAccountState.value !is State.DataState) {
+            if (id != 0L && existAccountState.value !is State.DataState) {
                 AppLoadingIndicator(modifier = Modifier.fillMaxSize())
             } else {
                 CreateAccountScreen(
@@ -222,6 +221,7 @@ fun AppNavigation(navHostController: NavHostController, mainViewModel: MainViewM
                     } else {
                         null
                     },
+                    createAccountParam = createAccountParams.value,
                     onAccountInfoChanged = { accountField, value ->
                         createAccountViewModel.onAccountInformationChanged(accountField, value)
                     },

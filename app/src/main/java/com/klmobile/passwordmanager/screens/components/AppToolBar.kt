@@ -27,6 +27,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 
@@ -34,6 +35,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun AppToolBar(
   title: String,
+  color: Color? = null,
   navigationIcon: ImageVector? = null,
   onNavigationClicked: (() -> Unit)? = null,
   actionIcons: List<ImageVector> = emptyList(),
@@ -42,7 +44,11 @@ fun AppToolBar(
   TopAppBar(
     title = { Text(text = title, style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.onPrimary)) },
     colors = TopAppBarDefaults.smallTopAppBarColors(
-      containerColor = MaterialTheme.colorScheme.primary
+      containerColor = if (color == null) {
+        MaterialTheme.colorScheme.primary
+      } else {
+        color
+      }
     ),
     navigationIcon = {
       navigationIcon?.let {

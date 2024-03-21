@@ -18,5 +18,7 @@ data class AccountDTO(
   @ColumnInfo("website")
   val website: String,
   @ColumnInfo("note")
-  val note: String
+  val note: String,
+  @ColumnInfo("color")
+  val color: String
 )

@@ -25,7 +25,13 @@ class AccountsViewModel @Inject constructor(
   fun getAllAccounts() {
     viewModelScope.launch {
       Timber.tag("AccountsViewModel").d("Getting all accounts")
-      getAllAccounts.invoke(Unit).collectLatest { _accountsState.emit(it) }
+      getAllAccounts.invoke(Unit).collectLatest {
+        //If we already have date before, ignore loading
+        if (accountsState.value is State.DataState && (it !is State.DataState && it !is State.ErrorState)) {
+          return@collectLatest
+        }
+        _accountsState.emit(it)
+      }
     }
   }
 }

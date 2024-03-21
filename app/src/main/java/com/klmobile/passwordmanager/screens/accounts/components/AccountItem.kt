@@ -16,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.klmobile.passwordmanager.screens.components.HorizontalSpacing
 import com.klmobile.passwordmanager.ui.theme.PasswordManagerTheme
+import com.klmobile.passwordmanager.utils.toColor
 import com.passwordmanager.domain.entities.Account
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -24,14 +25,14 @@ import java.util.Date
 fun AccountItem(
   modifier: Modifier = Modifier,
   account: Account,
-  onAccountSelected: ((Account) -> Unit)? = null,
+
 ) {
 
   Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
     Box(
       modifier = Modifier
         .size(55.dp)
-        .background(MaterialTheme.colorScheme.primary, shape = CircleShape),
+        .background(if (account.color.isEmpty()) { MaterialTheme.colorScheme.primary } else { account.color.toColor() }, shape = CircleShape),
       contentAlignment = Alignment.Center
     ) {
       val shortTitle = account.title.split(" ")
@@ -65,7 +66,7 @@ fun AccountItemPreview() {
       modifier = Modifier
         .fillMaxWidth()
         .padding(vertical = 10.dp, horizontal = 15.dp),
-      account = Account(Date().time, "Facebook ring", "Facebook", "", "", "")
+      account = Account(Date().time, "Facebook ring", "Facebook", "", "", "", "")
     )
   }
 }

@@ -17,87 +17,82 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CreateAccountViewModel @Inject constructor(
-    private val createNewAccount: CreateNewAccount,
-    private val getAccountByCreatedDate: GetAccountByCreatedDate
+  private val createNewAccount: CreateNewAccount,
+  private val getAccountByCreatedDate: GetAccountByCreatedDate
 ) : ViewModel() {
 
-    private var title = ""
-    private var username = ""
-    private var password = ""
-    private var website = ""
-    private var note = ""
+  private val _createAccountParams = MutableStateFlow(
+    CreateNewAccount.Params(
+      id = Date().time,
+      title = "",
+      username = "",
+      password = "",
+      website = "",
+      note = "",
+      color = ""
+    )
+  )
 
-    val _existAccountId = MutableStateFlow(0L)
-    val existAccountId = _existAccountId.asStateFlow()
 
-    private val _createAccountResult: MutableStateFlow<State<Account>> =
-        MutableStateFlow(State.IdleState)
-    val createAccountResult = _createAccountResult.asStateFlow()
+  val createAccountParams = _createAccountParams.asStateFlow()
+
+  private val _createAccountResult: MutableStateFlow<State<Account>> =
+    MutableStateFlow(State.IdleState)
+  val createAccountResult = _createAccountResult.asStateFlow()
 
 
-    private val _getAccountResult: MutableStateFlow<State<Account>> =
-        MutableStateFlow(State.IdleState)
-    val getAccountResult = _getAccountResult.asStateFlow()
+  private val _getAccountResult: MutableStateFlow<State<Account>> =
+    MutableStateFlow(State.IdleState)
+  val getAccountResult = _getAccountResult.asStateFlow()
 
-    fun setExistAccountId(id: Long) {
-        _existAccountId.value = id
+
+  fun onAccountInformationChanged(accountField: AccountField, value: String) {
+    when (accountField) {
+      AccountField.TITLE -> _createAccountParams.value = _createAccountParams.value.copy(title = value)
+      AccountField.USERNAME -> _createAccountParams.value = _createAccountParams.value.copy(username = value)
+      AccountField.PASSWORD -> _createAccountParams.value = _createAccountParams.value.copy(password = value)
+      AccountField.WEBSITE -> _createAccountParams.value = _createAccountParams.value.copy(website = value)
+      AccountField.NOTE -> _createAccountParams.value = _createAccountParams.value.copy(note = value)
+      AccountField.COLOR -> _createAccountParams.value = _createAccountParams.value.copy(color = value)
     }
+  }
 
-    fun onAccountInformationChanged(accountField: AccountField, value: String) {
-        when (accountField) {
-            AccountField.TITLE -> title = value
-            AccountField.USERNAME -> username = value
-            AccountField.PASSWORD -> password = value
-            AccountField.WEBSITE -> website = value
-            AccountField.NOTE -> note = value
+  fun createAccount() {
+    viewModelScope.launch {
+      val id = if (_getAccountResult.value is State.DataState) {
+        (_getAccountResult.value as State.DataState).data.date
+      } else {
+        Date().time
+      }
+      createNewAccount.invoke(
+        createAccountParams.value.copy(id = id)
+      ).collectLatest { _createAccountResult.emit(it) }
+    }
+  }
+
+  fun getAccount(id: Long) {
+    viewModelScope.launch {
+      getAccountByCreatedDate.invoke(id).collectLatest {
+        _getAccountResult.emit(it)
+        if (it is State.DataState) {
+          updateAccountFields(it.data)
         }
+      }
     }
+  }
 
-    fun createAccount() {
-        viewModelScope.launch {
-            val id = if (_getAccountResult.value is State.DataState) {
-                (_getAccountResult.value as State.DataState).data.date
-            } else {
-                Date().time
-            }
-            createNewAccount.invoke(
-                CreateNewAccount.Params(
-                    id, title, username, password, website, note
-                )
-            ).collectLatest { _createAccountResult.emit(it) }
-
-        }
+  private fun updateAccountFields(account: Account) {
+    account.run {
+      _createAccountParams.value = _createAccountParams.value.copy(
+        id = date,
+        title = title,
+        username = username,
+        password = password,
+        website = website,
+        note = note,
+        color = color
+      )
     }
-
-    fun getAccount() {
-        val id = _existAccountId.value
-        if (id == 0L) {
-            return
-        }
-        viewModelScope.launch {
-            getAccountByCreatedDate.invoke(id).collectLatest {
-                _getAccountResult.emit(it)
-                if (it is State.DataState) {
-                    updateAccountFields(it.data)
-                }
-            }
-        }
-    }
-
-    private fun updateAccountFields(account: Account) {
-        account.let {
-            title = it.title
-            username = it.username
-            password = it.password
-            website = it.website
-            note = it.note
-        }
-    }
-
-    fun resetCreateAccountState() {
-        _createAccountResult.value = State.IdleState
-        _getAccountResult.value = State.IdleState
-        _existAccountId.value = 0L
-    }
+  }
 
 }
